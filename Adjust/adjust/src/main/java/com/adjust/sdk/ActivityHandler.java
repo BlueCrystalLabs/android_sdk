@@ -23,13 +23,9 @@ import android.os.Message;
 import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import static com.adjust.sdk.Constants.ACTIVITY_STATE_FILENAME;
 import static com.adjust.sdk.Constants.ATTRIBUTION_FILENAME;
@@ -50,7 +46,7 @@ public class ActivityHandler extends HandlerThread implements IActivityHandler {
     private IPackageHandler packageHandler;
     private ActivityState activityState;
     private ILogger logger;
-    private static ScheduledExecutorService timer;
+    private AdjustTimer timer;
     private boolean enabled;
     private boolean offline;
 
@@ -395,6 +391,13 @@ public class ActivityHandler extends HandlerThread implements IActivityHandler {
 
         packageHandler = AdjustFactory.getPackageHandler(this, adjustConfig.context, paused());
 
+        timer = new AdjustTimer(new Runnable() {
+            @Override
+            public void run() {
+                timerFired();
+            }
+        },TIMER_START, TIMER_INTERVAL);
+
         startInternal();
     }
 
@@ -707,26 +710,16 @@ public class ActivityHandler extends HandlerThread implements IActivityHandler {
     }
 
     private void startTimer() {
-        stopTimer();
-
         // don't start the timer if it's disabled/offline
         if (paused()) {
             return;
         }
-        timer = Executors.newSingleThreadScheduledExecutor();
-        timer.scheduleWithFixedDelay(new Runnable() {
-            @Override
-            public void run() {
-                timerFired();
-            }
-        }, TIMER_START, TIMER_INTERVAL, TimeUnit.MILLISECONDS);
+
+        timer.resume();
     }
 
     private void stopTimer() {
-        if (timer != null) {
-            timer.shutdown();
-            timer = null;
-        }
+        timer.suspend();
     }
 
     private void timerFired() {
