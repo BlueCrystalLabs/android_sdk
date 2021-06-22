@@ -1,0 +1,35 @@
+apply plugin: 'com.android.application'
+
+repositories {
+    maven {
+        url "https://oss.sonatype.org/content/repositories/staging/"
+    }
+}
+
+android {
+    compileSdkVersion 30
+
+    defaultConfig {
+        applicationId "com.adjust.examples"
+        minSdkVersion 14
+        targetSdkVersion 30
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation "androidx.constraintlayout:constraintlayout:2.0.4"
+    implementation 'com.google.android.gms:play-services-ads-identifier:17.0.0'
+    implementation 'com.android.installreferrer:installreferrer:2.2'
+
+    implementation project(':sdk-core')
+}
